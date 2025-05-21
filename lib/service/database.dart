@@ -30,4 +30,12 @@ class DataBaseMethods {
         .doc(orderId)
         .set(userOrderMap);
   }
+
+  Future<Stream<QuerySnapshot>> getUserOrder(String id) async {
+    return FirebaseFirestore.instance
+        .collection("users")
+        .doc(id)
+        .collection('orders')
+        .snapshots();
+  }
 }

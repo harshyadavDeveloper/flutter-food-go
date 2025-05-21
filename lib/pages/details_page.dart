@@ -24,14 +24,16 @@ class DetailsPage extends StatefulWidget {
 
 class _DetailsPageState extends State<DetailsPage> {
   int quantity = 1, totalPrice = 0;
-  String? name, id, email;
+  String? name, id, email, address;
   Map<String, dynamic>? paymentIntent; // Added missing variable
   bool isLoading = false; // Added loading state
+  final _addressController = TextEditingController();
 
   getSharedPref() async {
     name = await SharedPrefHelper().getUserName();
     id = await SharedPrefHelper().getUserId();
     email = await SharedPrefHelper().getUserEmail();
+    address = await SharedPrefHelper().getUserAddress();
     setState(() {});
   }
 
@@ -40,6 +42,12 @@ class _DetailsPageState extends State<DetailsPage> {
     totalPrice = int.parse(widget.price);
     getSharedPref();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _addressController.dispose();
+    super.dispose();
   }
 
   @override
@@ -192,9 +200,7 @@ class _DetailsPageState extends State<DetailsPage> {
                             ? null
                             : () async {
                               // Convert price to cents for Stripe (multiply by 100)
-                              String amountInCents =
-                                  (totalPrice * 100).toString();
-                              await makePayment(amountInCents);
+                              await checkAddressAndProceed();
                             },
                     child: Material(
                       elevation: 3,
@@ -280,6 +286,7 @@ class _DetailsPageState extends State<DetailsPage> {
         "FoodName": widget.name,
         "FoodImage": widget.image,
         "Status": "Pending",
+        "Address": address ?? _addressController.text,
       };
 
       await DataBaseMethods().addUserOrderDetails(userOrderMap, id!, orderId);
@@ -389,5 +396,77 @@ class _DetailsPageState extends State<DetailsPage> {
         );
       },
     );
+  }
+
+  void _showAddressInputDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delivery Address Required'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Please enter your delivery address to continue'),
+              SizedBox(height: 10),
+              TextField(
+                controller: _addressController,
+                decoration: InputDecoration(
+                  hintText: 'Enter your delivery address',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (_addressController.text.trim().isNotEmpty) {
+                  String newAddress = _addressController.text.trim();
+                  await SharedPrefHelper().saveUserAddress(newAddress);
+                  address = newAddress;
+                  Navigator.of(context).pop();
+
+                  // Now proceed with payment
+                  String amountInCents = (totalPrice * 100).toString();
+                  await makePayment(amountInCents);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Please enter a valid address'),
+                      backgroundColor: Color(0xffef2b39),
+                    ),
+                  );
+                }
+              },
+              child: Text('Save & Continue'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> checkAddressAndProceed() async {
+    // Check if address exists
+    String? currentAddress = await SharedPrefHelper().getUserAddress();
+
+    if (currentAddress == null || currentAddress.isEmpty) {
+      // No address found, show dialog to enter address
+      _showAddressInputDialog();
+    } else {
+      // Address exists, proceed with payment
+      address = currentAddress;
+      String amountInCents = (totalPrice * 100).toString();
+      await makePayment(amountInCents);
+    }
   }
 }
