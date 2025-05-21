@@ -37,10 +37,11 @@ class _SignupState extends State<Signup> {
         Map<String, dynamic> userInfoMap = {
           "Name": nameController.text,
           "Email": emailController.text,
-          "Id": id
+          "Id": id,
         };
         await SharedPrefHelper().saveUserEmail(email);
         await SharedPrefHelper().saveUsername(nameController.text);
+        await SharedPrefHelper().saveUserId(id);
 
         await DataBaseMethods().addUserDetails(userInfoMap, id);
 
@@ -53,10 +54,7 @@ class _SignupState extends State<Signup> {
             SnackBar(
               content: Text(
                 'Registered Successfully!',
-                style: TextStyle(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
               ),
               backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
@@ -64,7 +62,9 @@ class _SignupState extends State<Signup> {
             ),
           );
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => Home()));
+            context,
+            MaterialPageRoute(builder: (context) => Home()),
+          );
         }
       } on FirebaseAuthException catch (e) {
         setState(() {
@@ -139,10 +139,12 @@ class _SignupState extends State<Signup> {
               padding: EdgeInsets.only(top: 30),
               width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
-                  color: Color(0xffffefbf),
-                  borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(40),
-                      bottomRight: Radius.circular(40))),
+                color: Color(0xffffefbf),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(40),
+                  bottomRight: Radius.circular(40),
+                ),
+              ),
               child: Column(
                 children: [
                   Image.asset(
@@ -163,9 +165,10 @@ class _SignupState extends State<Signup> {
             SingleChildScrollView(
               child: Container(
                 margin: EdgeInsets.only(
-                    top: MediaQuery.of(context).size.height / 2.8,
-                    left: 20.0,
-                    right: 20.0),
+                  top: MediaQuery.of(context).size.height / 2.8,
+                  left: 20.0,
+                  right: 20.0,
+                ),
                 child: Material(
                   elevation: 3,
                   borderRadius: BorderRadius.circular(20),
@@ -173,8 +176,9 @@ class _SignupState extends State<Signup> {
                     padding: EdgeInsets.only(left: 20.0, right: 20.0),
                     width: MediaQuery.of(context).size.width,
                     decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20)),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     height: MediaQuery.of(context).size.height / 1.5,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,9 +201,10 @@ class _SignupState extends State<Signup> {
                           child: TextFormField(
                             controller: nameController,
                             decoration: InputDecoration(
-                                border: InputBorder.none,
-                                hintText: "Enter Name",
-                                prefixIcon: Icon(Icons.person_outlined)),
+                              border: InputBorder.none,
+                              hintText: "Enter Name",
+                              prefixIcon: Icon(Icons.person_outlined),
+                            ),
                           ),
                         ),
                         SizedBox(height: 20.0),
@@ -213,14 +218,17 @@ class _SignupState extends State<Signup> {
                           child: TextFormField(
                             controller: emailController,
                             decoration: InputDecoration(
-                                border: InputBorder.none,
-                                hintText: "Enter Email",
-                                prefixIcon: Icon(Icons.email_outlined)),
+                              border: InputBorder.none,
+                              hintText: "Enter Email",
+                              prefixIcon: Icon(Icons.email_outlined),
+                            ),
                           ),
                         ),
                         SizedBox(height: 20.0),
-                        Text("Password",
-                            style: AppWidget.signupTextFieldStyle()),
+                        Text(
+                          "Password",
+                          style: AppWidget.signupTextFieldStyle(),
+                        ),
                         SizedBox(height: 5.0),
                         Container(
                           decoration: BoxDecoration(
@@ -250,69 +258,73 @@ class _SignupState extends State<Signup> {
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: 30,
-                        ),
+                        SizedBox(height: 30),
                         GestureDetector(
-                          onTap: _isLoading
-                              ? null // Disable onTap when loading
-                              : () {
-                                  if (nameController.text != "" &&
-                                      emailController.text != "" &&
-                                      passwordController.text != "") {
-                                    setState(() {
-                                      name = nameController.text;
-                                      email = emailController.text;
-                                      password = passwordController.text;
-                                    });
-                                    registration();
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Please fill all fields',
-                                          style: TextStyle(fontSize: 18.0),
+                          onTap:
+                              _isLoading
+                                  ? null // Disable onTap when loading
+                                  : () {
+                                    if (nameController.text != "" &&
+                                        emailController.text != "" &&
+                                        passwordController.text != "") {
+                                      setState(() {
+                                        name = nameController.text;
+                                        email = emailController.text;
+                                        password = passwordController.text;
+                                      });
+                                      registration();
+                                    } else {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Please fill all fields',
+                                            style: TextStyle(fontSize: 18.0),
+                                          ),
+                                          backgroundColor: Colors.orangeAccent,
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: Duration(seconds: 3),
                                         ),
-                                        backgroundColor: Colors.orangeAccent,
-                                        behavior: SnackBarBehavior.floating,
-                                        duration: Duration(seconds: 3),
-                                      ),
-                                    );
-                                  }
-                                },
+                                      );
+                                    }
+                                  },
                           child: Center(
                             child: Container(
                               width: 180,
                               height: 50,
                               decoration: BoxDecoration(
-                                  color: _isLoading
-                                      ? Colors.grey // Change color when loading
-                                      : Color(0xffef2b39),
-                                  borderRadius: BorderRadius.circular(30)),
+                                color:
+                                    _isLoading
+                                        ? Colors
+                                            .grey // Change color when loading
+                                        : Color(0xffef2b39),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
                               child: Center(
-                                child: _isLoading
-                                    ? SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.0,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                  Colors.white),
+                                child:
+                                    _isLoading
+                                        ? SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.0,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
+                                                ),
+                                          ),
+                                        )
+                                        : Text(
+                                          "Sign Up",
+                                          style:
+                                              AppWidget.boldBhiteTextFieldStyle(),
                                         ),
-                                      )
-                                    : Text(
-                                        "Sign Up",
-                                        style:
-                                            AppWidget.boldBhiteTextFieldStyle(),
-                                      ),
                               ),
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: 10,
-                        ),
+                        SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -320,23 +332,23 @@ class _SignupState extends State<Signup> {
                               "Already have a account?",
                               style: AppWidget.simpleTextFieldStyle(),
                             ),
-                            SizedBox(
-                              width: 10,
-                            ),
+                            SizedBox(width: 10),
                             GestureDetector(
                               onTap: () {
                                 Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => Login()));
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Login(),
+                                  ),
+                                );
                               },
                               child: Text(
                                 "Login",
                                 style: AppWidget.boldTextStyle(),
                               ),
-                            )
+                            ),
                           ],
-                        )
+                        ),
                       ],
                     ),
                   ),

@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:food_delivery_app/service/constant.dart';
+import 'package:food_delivery_app/service/database.dart';
+import 'package:food_delivery_app/service/shared_pref.dart';
 import 'package:food_delivery_app/service/widget_support.dart';
 import 'package:http/http.dart' as http;
+import 'package:random_string/random_string.dart';
 
 class DetailsPage extends StatefulWidget {
   const DetailsPage({
@@ -21,12 +24,21 @@ class DetailsPage extends StatefulWidget {
 
 class _DetailsPageState extends State<DetailsPage> {
   int quantity = 1, totalPrice = 0;
+  String? name, id, email;
   Map<String, dynamic>? paymentIntent; // Added missing variable
   bool isLoading = false; // Added loading state
+
+  getSharedPref() async {
+    name = await SharedPrefHelper().getUserName();
+    id = await SharedPrefHelper().getUserId();
+    email = await SharedPrefHelper().getUserEmail();
+    setState(() {});
+  }
 
   @override
   void initState() {
     totalPrice = int.parse(widget.price);
+    getSharedPref();
     super.initState();
   }
 
@@ -224,7 +236,7 @@ class _DetailsPageState extends State<DetailsPage> {
         isLoading = true;
       });
 
-      paymentIntent = await createPaymentIntent(amount, "USD");
+      paymentIntent = await createPaymentIntent(amount, "INR");
 
       if (paymentIntent == null) {
         setState(() {
@@ -257,6 +269,21 @@ class _DetailsPageState extends State<DetailsPage> {
   Future<void> displayPaymentSheet() async {
     try {
       await Stripe.instance.presentPaymentSheet();
+      String orderId = randomAlphaNumeric(10);
+      Map<String, dynamic> userOrderMap = {
+        "OrderId": orderId,
+        "Name": name,
+        "Id": id,
+        "Quantity": quantity.toString(),
+        "Total": totalPrice.toString(),
+        "Email": email,
+        "FoodName": widget.name,
+        "FoodImage": widget.image,
+        "Status": "Pending",
+      };
+
+      await DataBaseMethods().addUserOrderDetails(userOrderMap, id!, orderId);
+      await DataBaseMethods().addAdminOrderDetails(userOrderMap, orderId);
 
       setState(() {
         isLoading = false;

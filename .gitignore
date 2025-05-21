@@ -49,3 +49,4 @@ app.*.map.json
 
 # Custom configuration files
 lib/service/constant.dart
+
