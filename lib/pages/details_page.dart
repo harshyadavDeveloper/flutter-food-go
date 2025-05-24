@@ -242,7 +242,7 @@ class _DetailsPageState extends State<DetailsPage> {
         isLoading = true;
       });
 
-      paymentIntent = await createPaymentIntent(amount, "INR");
+      paymentIntent = await createPaymentIntent(amount, "USD");
 
       if (paymentIntent == null) {
         setState(() {
