@@ -73,4 +73,15 @@ class DataBaseMethods {
         .doc(docid)
         .update({"Status": "Delievered"});
   }
+
+  Future<Stream<QuerySnapshot>> getAllUser() async {
+    return FirebaseFirestore.instance.collection("users").snapshots();
+  }
+
+  Future deleteUser(String id) async {
+    return await FirebaseFirestore.instance
+        .collection("users")
+        .doc(id)
+        .delete();
+  }
 }
