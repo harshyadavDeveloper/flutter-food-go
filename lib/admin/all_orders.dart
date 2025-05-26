@@ -1,35 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/service/database.dart';
-import 'package:food_delivery_app/service/shared_pref.dart';
 import 'package:food_delivery_app/service/widget_support.dart';
 
-class Order extends StatefulWidget {
-  const Order({super.key});
+class AllOrders extends StatefulWidget {
+  const AllOrders({super.key});
 
   @override
-  State<Order> createState() => _OrderState();
+  State<AllOrders> createState() => _AllOrdersState();
 }
 
-class _OrderState extends State<Order> {
+class _AllOrdersState extends State<AllOrders> {
   Stream? orderStream;
 
-  String? id;
-
-  getSharedPrefs() async {
-    id = await SharedPrefHelper().getUserId();
+  loadAllOrders() async {
+    orderStream = await DataBaseMethods().getAdminOrders();
     setState(() {});
-  }
-
-  getData() async {
-    await getSharedPrefs();
-    orderStream = await DataBaseMethods().getUserOrder(id!);
   }
 
   @override
   void initState() {
-    getData();
     super.initState();
+    loadAllOrders();
   }
 
   Widget allOrders() {
@@ -59,7 +51,6 @@ class _OrderState extends State<Order> {
                           topRight: Radius.circular(10),
                         ),
                       ),
-
                       child: Column(
                         children: [
                           SizedBox(height: 5),
@@ -79,7 +70,6 @@ class _OrderState extends State<Order> {
                           ),
                           Divider(),
                           Row(
-                            // crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Image.asset(
                                 ds["FoodImage"],
@@ -95,7 +85,6 @@ class _OrderState extends State<Order> {
                                     ds["FoodName"],
                                     style: AppWidget.boldTextStyle(),
                                   ),
-
                                   SizedBox(height: 5),
                                   Row(
                                     children: [
@@ -121,6 +110,28 @@ class _OrderState extends State<Order> {
                                     ],
                                   ),
                                   SizedBox(height: 5),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.person,
+                                        color: Color(0xffef2b39),
+                                      ),
+                                      Text(
+                                        ds["Name"],
+                                        style: AppWidget.simpleTextFieldStyle(),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.mail,
+                                        color: Color(0xffef2b39),
+                                      ),
+                                      Text(ds["Email"]),
+                                    ],
+                                  ),
+                                  SizedBox(height: 5),
                                   Text(
                                     ds["Status"],
                                     style: TextStyle(
@@ -129,6 +140,34 @@ class _OrderState extends State<Order> {
                                       fontSize: 20,
                                     ),
                                   ),
+                                  SizedBox(height: 5),
+                                  GestureDetector(
+                                    onTap: () async {
+                                      await DataBaseMethods().updateAdminOrder(
+                                        ds.id,
+                                      );
+                                      await DataBaseMethods().updateUserOrder(
+                                        ds["Id"],
+                                        ds.id,
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 100,
+                                      height: 50,
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          "Delievered",
+                                          style:
+                                              AppWidget.whiteTextFieldStyle(),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: 5),
                                 ],
                               ),
                             ],
@@ -152,13 +191,32 @@ class _OrderState extends State<Order> {
         margin: EdgeInsets.only(top: 40),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("My Orders", style: AppWidget.headlineTextFieldStyle()),
-              ],
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Color(0xffef2b39),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: MediaQuery.of(context).size.width / 6),
+                  Text("All Orders", style: AppWidget.headlineTextFieldStyle()),
+                ],
+              ),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 20),
             Expanded(
               child: Container(
                 width: MediaQuery.of(context).size.width,
@@ -172,10 +230,8 @@ class _OrderState extends State<Order> {
                 child: Column(
                   children: [
                     SizedBox(height: 20),
-                    Container(
-                      height: MediaQuery.of(context).size.height / 1.5,
-                      child: allOrders(),
-                    ),
+                    // FIXED: Remove the fixed height container and use Expanded instead
+                    Expanded(child: allOrders()),
                   ],
                 ),
               ),
