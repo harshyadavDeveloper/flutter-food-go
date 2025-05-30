@@ -9,7 +9,6 @@ import 'package:food_delivery_app/service/shared_pref.dart';
 import 'package:food_delivery_app/service/widget_support.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:random_string/random_string.dart';
 
 class Wallet extends StatefulWidget {
   const Wallet({super.key});
@@ -21,6 +20,7 @@ class Wallet extends StatefulWidget {
 class _WalletState extends State<Wallet> {
   Map<String, dynamic>? paymentIntent;
   bool isLoading = false;
+  bool isWalletLoading = true;
   Stream? transactionStream;
 
   String? email, wallet, id;
@@ -34,6 +34,10 @@ class _WalletState extends State<Wallet> {
   }
 
   getUserWallet() async {
+    setState(() {
+      isWalletLoading = true;
+    });
+
     await getSharedPref();
     transactionStream = await DataBaseMethods().getUsertransaction(id!);
     QuerySnapshot querySnapshot = await DataBaseMethods().getUserWalletByEmail(
@@ -42,7 +46,10 @@ class _WalletState extends State<Wallet> {
 
     wallet = "${querySnapshot.docs[0]["Wallet"]}";
     print("Wallet ----> $wallet");
-    setState(() {});
+
+    setState(() {
+      isWalletLoading = false;
+    });
   }
 
   @override
@@ -104,7 +111,6 @@ class _WalletState extends State<Wallet> {
                   return;
                 }
 
-                // Convert dollars to cents for Stripe
                 int amountInCents = (amount * 100).round();
 
                 Navigator.of(context).pop();
@@ -140,7 +146,6 @@ class _WalletState extends State<Wallet> {
         return;
       }
 
-      // Add null check for client_secret
       String? clientSecret = paymentIntent?['client_secret'];
       if (clientSecret == null || clientSecret.isEmpty) {
         setState(() {
@@ -172,31 +177,36 @@ class _WalletState extends State<Wallet> {
     }
   }
 
-  // Fixed displayPaymentSheet function
   displayPaymentSheet(String amount) async {
     try {
       await Stripe.instance
           .presentPaymentSheet()
           .then((value) async {
-            // Convert cents back to dollars before adding to wallet
+            // Show loading while updating wallet
+            setState(() {
+              isLoading = true;
+            });
+
             int amountInCents = int.parse(amount);
             int amountInDollars = (amountInCents / 100).round();
 
             int updatedWallet = int.parse(wallet!) + amountInDollars;
             await DataBaseMethods().updateWallet(updatedWallet.toString(), id!);
             await getUserWallet();
-            setState(() {});
 
             DateTime now = DateTime.now();
             String formattedDate = DateFormat("dd MMM").format(now);
 
             Map<String, dynamic> userTransaction = {
-              "Amount":
-                  amountInDollars.toString(), // Store dollar amount, not cents
+              "Amount": amountInDollars.toString(),
               "Date": formattedDate,
             };
 
             await DataBaseMethods().addUserTransaction(userTransaction, id!);
+
+            setState(() {
+              isLoading = false;
+            });
 
             showDialog(
               context: context,
@@ -208,7 +218,8 @@ class _WalletState extends State<Wallet> {
                         Row(
                           children: [
                             Icon(Icons.check_circle, color: Colors.green),
-                            Text("Payment Successful"), // Fixed typo
+                            SizedBox(width: 10),
+                            Text("Payment Successful"),
                           ],
                         ),
                       ],
@@ -218,15 +229,24 @@ class _WalletState extends State<Wallet> {
             paymentIntent = null;
           })
           .onError((error, stacktree) {
+            setState(() {
+              isLoading = false;
+            });
             print("Error updating the wallet $error & $stacktree");
           });
     } on StripeException catch (e) {
+      setState(() {
+        isLoading = false;
+      });
       print("Error while adding money to wallet ---> $e");
       showDialog(
         context: context,
         builder: (_) => AlertDialog(content: Text("Cancelled")),
       );
     } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
       print("Error updating the wallet $e");
     }
   }
@@ -331,12 +351,52 @@ class _WalletState extends State<Wallet> {
     );
   }
 
+  Widget _buildLoadingOverlay() {
+    return Container(
+      color: Colors.black.withOpacity(0.5),
+      child: Center(
+        child: Container(
+          padding: EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xffef2b39)),
+              ),
+              SizedBox(height: 15),
+              Text('Processing Payment...', style: AppWidget.boldTextStyle()),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:
-          wallet == null
-              ? Center(child: CircularProgressIndicator())
+      body: Stack(
+        children: [
+          // Main content
+          isWalletLoading
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color(0xffef2b39),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Text('Loading Wallet...', style: AppWidget.boldTextStyle()),
+                  ],
+                ),
+              )
               : Container(
                 margin: EdgeInsets.only(top: 40),
                 child: Column(
@@ -405,7 +465,6 @@ class _WalletState extends State<Wallet> {
                                 ),
                               ),
                             ),
-
                             SizedBox(height: 40),
                             Padding(
                               padding: EdgeInsets.only(left: 0),
@@ -414,16 +473,25 @@ class _WalletState extends State<Wallet> {
                                     MainAxisAlignment.spaceEvenly,
                                 children: [
                                   GestureDetector(
-                                    onTap: () {
-                                      makePayment("10000");
-                                    },
+                                    onTap:
+                                        isLoading
+                                            ? null
+                                            : () {
+                                              makePayment("10000");
+                                            },
                                     child: Container(
                                       height: 50,
                                       width: 100,
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color:
+                                            isLoading
+                                                ? Colors.grey[300]
+                                                : Colors.white,
                                         border: Border.all(
-                                          color: Colors.black45,
+                                          color:
+                                              isLoading
+                                                  ? Colors.grey
+                                                  : Colors.black45,
                                           width: 2,
                                         ),
                                         borderRadius: BorderRadius.circular(10),
@@ -437,18 +505,26 @@ class _WalletState extends State<Wallet> {
                                       ),
                                     ),
                                   ),
-
                                   GestureDetector(
-                                    onTap: () {
-                                      makePayment("20000");
-                                    },
+                                    onTap:
+                                        isLoading
+                                            ? null
+                                            : () {
+                                              makePayment("20000");
+                                            },
                                     child: Container(
                                       height: 50,
                                       width: 100,
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color:
+                                            isLoading
+                                                ? Colors.grey[300]
+                                                : Colors.white,
                                         border: Border.all(
-                                          color: Colors.black45,
+                                          color:
+                                              isLoading
+                                                  ? Colors.grey
+                                                  : Colors.black45,
                                           width: 2,
                                         ),
                                         borderRadius: BorderRadius.circular(10),
@@ -462,18 +538,26 @@ class _WalletState extends State<Wallet> {
                                       ),
                                     ),
                                   ),
-
                                   GestureDetector(
-                                    onTap: () {
-                                      makePayment("5000");
-                                    },
+                                    onTap:
+                                        isLoading
+                                            ? null
+                                            : () {
+                                              makePayment("5000");
+                                            },
                                     child: Container(
                                       height: 50,
                                       width: 100,
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color:
+                                            isLoading
+                                                ? Colors.grey[300]
+                                                : Colors.white,
                                         border: Border.all(
-                                          color: Colors.black45,
+                                          color:
+                                              isLoading
+                                                  ? Colors.grey
+                                                  : Colors.black45,
                                           width: 2,
                                         ),
                                         borderRadius: BorderRadius.circular(10),
@@ -490,23 +574,28 @@ class _WalletState extends State<Wallet> {
                                 ],
                               ),
                             ),
-
                             SizedBox(height: 30),
                             GestureDetector(
-                              onTap: () {
-                                _showCustomAmountDialog();
-                              },
+                              onTap:
+                                  isLoading
+                                      ? null
+                                      : () {
+                                        _showCustomAmountDialog();
+                                      },
                               child: Container(
                                 height: 50,
                                 margin: EdgeInsets.only(left: 20, right: 20),
                                 width: MediaQuery.of(context).size.width,
                                 decoration: BoxDecoration(
-                                  color: Color(0xffef2b39),
+                                  color:
+                                      isLoading
+                                          ? Colors.grey
+                                          : Color(0xffef2b39),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Center(
                                   child: Text(
-                                    "Add Money",
+                                    isLoading ? "Processing..." : "Add Money",
                                     style: AppWidget.boldBhiteTextFieldStyle(),
                                   ),
                                 ),
@@ -527,7 +616,7 @@ class _WalletState extends State<Wallet> {
                                   children: [
                                     SizedBox(height: 10),
                                     Text(
-                                      "Your Transections",
+                                      "Your Transactions",
                                       style: AppWidget.boldTextStyle(),
                                     ),
                                     SizedBox(height: 20),
@@ -548,6 +637,11 @@ class _WalletState extends State<Wallet> {
                   ],
                 ),
               ),
+
+          // Loading overlay
+          if (isLoading) _buildLoadingOverlay(),
+        ],
+      ),
     );
   }
 }
