@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:food_delivery_app/pages/login.dart';
 import 'package:food_delivery_app/service/widget_support.dart';
 
 class Onboarding extends StatefulWidget {
@@ -31,22 +32,32 @@ class _OnboardingState extends State<Onboarding> {
               style: AppWidget.simpleTextFieldStyle(),
             ),
             SizedBox(height: 20),
-            Container(
-              height: 50,
-              width: MediaQuery.of(context).size.width / 2,
-              decoration: BoxDecoration(
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Login()),
+                );
+              },
+              child: Container(
+                height: 50,
+                width: MediaQuery.of(context).size.width / 2,
+                decoration: BoxDecoration(
                   color: Color(0xff8c592a),
-                  borderRadius: BorderRadius.circular(20)),
-              child: Center(
-                child: Text(
-                  "Get Started",
-                  style: TextStyle(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Center(
+                  child: Text(
+                    "Get Started",
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 20.0,
-                      fontWeight: FontWeight.bold),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
