@@ -84,4 +84,58 @@ class DataBaseMethods {
         .doc(id)
         .delete();
   }
+
+  Future addUserTransaction(
+    Map<String, dynamic> userOrderMap,
+    String id,
+  ) async {
+    return await FirebaseFirestore.instance
+        .collection('users')
+        .doc(id)
+        .collection("Transactions")
+        .add(userOrderMap);
+  }
+
+  Future<Stream<QuerySnapshot>> getUsertransaction(String id) async {
+    return await FirebaseFirestore.instance
+        .collection("users")
+        .doc(id)
+        .collection("Transactions")
+        .snapshots();
+  }
+
+  Future<QuerySnapshot> search(String searchTerm) async {
+    try {
+      return await FirebaseFirestore.instance
+          .collection("Foods")
+          .where("search_key", arrayContains: searchTerm.toLowerCase())
+          .get();
+    } catch (e) {
+      print("Search error: $e");
+      return await FirebaseFirestore.instance
+          .collection("Foods")
+          .where("name", isEqualTo: "___no_results___")
+          .get();
+    }
+  }
+
+  Future<QuerySnapshot> searchByName(String searchTerm) async {
+    try {
+      String searchKey =
+          searchTerm.substring(0, 1).toUpperCase() +
+          (searchTerm.length > 1 ? searchTerm.substring(1).toLowerCase() : "");
+
+      return await FirebaseFirestore.instance
+          .collection("Foods")
+          .where("name", isGreaterThanOrEqualTo: searchKey)
+          .where("name", isLessThanOrEqualTo: '$searchKey\uf8ff')
+          .get();
+    } catch (e) {
+      print("Search error: $e");
+      return await FirebaseFirestore.instance
+          .collection("Foods")
+          .where("name", isEqualTo: "___no_results___")
+          .get();
+    }
+  }
 }

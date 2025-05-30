@@ -8,6 +8,7 @@ import 'package:food_delivery_app/service/database.dart';
 import 'package:food_delivery_app/service/shared_pref.dart';
 import 'package:food_delivery_app/service/widget_support.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:random_string/random_string.dart';
 
 class Wallet extends StatefulWidget {
@@ -20,6 +21,7 @@ class Wallet extends StatefulWidget {
 class _WalletState extends State<Wallet> {
   Map<String, dynamic>? paymentIntent;
   bool isLoading = false;
+  Stream? transactionStream;
 
   String? email, wallet, id;
   TextEditingController amountController = TextEditingController();
@@ -33,6 +35,7 @@ class _WalletState extends State<Wallet> {
 
   getUserWallet() async {
     await getSharedPref();
+    transactionStream = await DataBaseMethods().getUsertransaction(id!);
     QuerySnapshot querySnapshot = await DataBaseMethods().getUserWalletByEmail(
       email!,
     );
@@ -177,6 +180,18 @@ class _WalletState extends State<Wallet> {
             int updatedWallet = int.parse(wallet!) + int.parse(amount);
             await DataBaseMethods().updateWallet(updatedWallet.toString(), id!);
             await getUserWallet();
+            setState(() {});
+
+            DateTime now = DateTime.now();
+            String formattedDate = DateFormat("dd MMM").format(now);
+
+            Map<String, dynamic> userTransaction = {
+              "Amount": amount,
+              "Date": formattedDate,
+            };
+
+            await DataBaseMethods().addUserTransaction(userTransaction, id!);
+
             showDialog(
               context: context,
               builder:
@@ -258,6 +273,54 @@ class _WalletState extends State<Wallet> {
             ),
           ],
         );
+      },
+    );
+  }
+
+  Widget allTransaction() {
+    return StreamBuilder(
+      stream: transactionStream,
+      builder: (context, AsyncSnapshot snapshot) {
+        return snapshot.hasData
+            ? ListView.builder(
+              padding: EdgeInsets.zero,
+              itemCount: snapshot.data.docs.length,
+              itemBuilder: (context, index) {
+                DocumentSnapshot ds = snapshot.data.docs[index];
+                return Container(
+                  padding: EdgeInsets.all(10),
+                  margin: EdgeInsets.only(left: 20, right: 20, bottom: 20),
+                  width: MediaQuery.of(context).size.width,
+                  decoration: BoxDecoration(
+                    color: Color(0xFFececf8),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        ds["Date"],
+                        style: AppWidget.headlineTextFieldStyle(),
+                      ),
+                      SizedBox(width: 20),
+                      Column(
+                        children: [
+                          Text("Amount added to wallet"),
+                          Text(
+                            "\$${ds["Amount"]}",
+                            style: TextStyle(
+                              color: Color(0xffef2b39),
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            )
+            : Container();
       },
     );
   }
@@ -440,6 +503,35 @@ class _WalletState extends State<Wallet> {
                                     "Add Money",
                                     style: AppWidget.boldBhiteTextFieldStyle(),
                                   ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            Expanded(
+                              child: Container(
+                                width: MediaQuery.of(context).size.width,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(30),
+                                    topRight: Radius.circular(30),
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    SizedBox(height: 10),
+                                    Text(
+                                      "Your Transections",
+                                      style: AppWidget.boldTextStyle(),
+                                    ),
+                                    SizedBox(height: 20),
+                                    Container(
+                                      height:
+                                          MediaQuery.of(context).size.height /
+                                          3.3,
+                                      child: allTransaction(),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
