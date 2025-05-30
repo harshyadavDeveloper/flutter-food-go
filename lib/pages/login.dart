@@ -52,10 +52,12 @@ class _LoginState extends State<Login> {
       QuerySnapshot querySnapshot = await DataBaseMethods().getUserByEmail(
         email,
       );
+      print("-------Query SnapShot -------- $querySnapshot");
 
       if (querySnapshot.docs.isNotEmpty) {
         Map<String, dynamic> userData =
             querySnapshot.docs.first.data() as Map<String, dynamic>;
+        print("------User Data------ $userData");
 
         // Save all user data to SharedPreferences
         await SharedPrefHelper().saveUserEmail(email);

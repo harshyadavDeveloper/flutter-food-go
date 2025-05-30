@@ -172,12 +172,17 @@ class _WalletState extends State<Wallet> {
     }
   }
 
+  // Fixed displayPaymentSheet function
   displayPaymentSheet(String amount) async {
     try {
       await Stripe.instance
           .presentPaymentSheet()
           .then((value) async {
-            int updatedWallet = int.parse(wallet!) + int.parse(amount);
+            // Convert cents back to dollars before adding to wallet
+            int amountInCents = int.parse(amount);
+            int amountInDollars = (amountInCents / 100).round();
+
+            int updatedWallet = int.parse(wallet!) + amountInDollars;
             await DataBaseMethods().updateWallet(updatedWallet.toString(), id!);
             await getUserWallet();
             setState(() {});
@@ -186,7 +191,8 @@ class _WalletState extends State<Wallet> {
             String formattedDate = DateFormat("dd MMM").format(now);
 
             Map<String, dynamic> userTransaction = {
-              "Amount": amount,
+              "Amount":
+                  amountInDollars.toString(), // Store dollar amount, not cents
               "Date": formattedDate,
             };
 
@@ -202,7 +208,7 @@ class _WalletState extends State<Wallet> {
                         Row(
                           children: [
                             Icon(Icons.check_circle, color: Colors.green),
-                            Text("Payment Successfull"),
+                            Text("Payment Successful"), // Fixed typo
                           ],
                         ),
                       ],

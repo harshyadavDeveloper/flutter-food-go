@@ -18,6 +18,7 @@ class _ProfileState extends State<Profile> {
   getUserDetails() async {
     name = await SharedPrefHelper().getUserName();
     email = await SharedPrefHelper().getUserEmail();
+    print("Fetched name and email from profile page $email $name");
     setState(() {});
   }
 
@@ -169,7 +170,7 @@ class _ProfileState extends State<Profile> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Name",
+                                    "Email",
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
