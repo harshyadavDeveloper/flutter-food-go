@@ -44,6 +44,7 @@ dependencies:
   http: ^1.4.0
   intl: ^0.20.2
   rename_app: ^1.6.3
+  flutter_launcher_icons: ^0.14.3
 
 dev_dependencies:
   flutter_test:
@@ -96,3 +97,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "images/food-go-logo.png"
+  adaptive_icon_background: "#FFFFFF" # White background
+  adaptive_icon_foreground: "images/food-go-logo.png"

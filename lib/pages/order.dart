@@ -15,10 +15,16 @@ class _OrderState extends State<Order> {
   Stream? orderStream;
 
   String? id;
+  bool isLoading = false;
 
   getSharedPrefs() async {
+    setState(() {
+      isLoading = true;
+    });
     id = await SharedPrefHelper().getUserId();
-    setState(() {});
+    setState(() {
+      isLoading = false;
+    });
   }
 
   getData() async {
@@ -148,41 +154,47 @@ class _OrderState extends State<Order> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        margin: EdgeInsets.only(top: 40),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("My Orders", style: AppWidget.headlineTextFieldStyle()),
-              ],
-            ),
-            SizedBox(height: 10),
-            Expanded(
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                decoration: BoxDecoration(
-                  color: Color(0xFFececf8),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
-                  ),
-                ),
+      body:
+          isLoading
+              ? Center(child: CircleAvatar())
+              : Container(
+                margin: EdgeInsets.only(top: 40),
                 child: Column(
                   children: [
-                    SizedBox(height: 20),
-                    Container(
-                      height: MediaQuery.of(context).size.height / 1.5,
-                      child: allOrders(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "My Orders",
+                          style: AppWidget.headlineTextFieldStyle(),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Expanded(
+                      child: Container(
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                          color: Color(0xFFececf8),
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(30),
+                            topRight: Radius.circular(30),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            SizedBox(height: 20),
+                            Container(
+                              height: MediaQuery.of(context).size.height / 1.5,
+                              child: allOrders(),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
