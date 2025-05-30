@@ -11,6 +11,7 @@ import 'package:food_delivery_app/pages/home.dart';
 import 'package:food_delivery_app/pages/login.dart';
 import 'package:food_delivery_app/pages/onboarding.dart';
 import 'package:food_delivery_app/pages/signup.dart';
+import 'package:food_delivery_app/pages/splash_screen.dart';
 import 'package:food_delivery_app/service/constant.dart';
 
 void main() async {
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: BottomNav(),
+      home: SplashScreen(),
     );
   }
 }

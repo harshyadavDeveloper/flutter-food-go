@@ -97,11 +97,19 @@ class DataBaseMethods {
   }
 
   Future<Stream<QuerySnapshot>> getUsertransaction(String id) async {
-    return await FirebaseFirestore.instance
+    return FirebaseFirestore.instance
         .collection("users")
         .doc(id)
         .collection("Transactions")
         .snapshots();
+  }
+
+  // In your DatabaseMethods class
+  Future<QuerySnapshot> getUserByEmail(String email) async {
+    return await FirebaseFirestore.instance
+        .collection("users")
+        .where("Email", isEqualTo: email)
+        .get();
   }
 
   Future<QuerySnapshot> search(String searchTerm) async {
