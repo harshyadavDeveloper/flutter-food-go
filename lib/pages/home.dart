@@ -2,12 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/model/burger_model.dart';
 import 'package:food_delivery_app/model/category_model.dart';
+import 'package:food_delivery_app/model/chinese_model.dart';
+import 'package:food_delivery_app/model/mexican_model.dart';
 import 'package:food_delivery_app/model/pizza_model.dart';
 import 'package:food_delivery_app/pages/bottom_nav.dart';
 import 'package:food_delivery_app/pages/details_page.dart';
 import 'package:food_delivery_app/service/burger_data.dart';
 import 'package:food_delivery_app/service/category_data.dart';
+import 'package:food_delivery_app/service/chinese_data.dart';
 import 'package:food_delivery_app/service/database.dart';
+import 'package:food_delivery_app/service/mexican_data.dart';
 import 'package:food_delivery_app/service/pizza_data.dart';
 import 'package:food_delivery_app/service/widget_support.dart';
 
@@ -22,6 +26,8 @@ class _HomeState extends State<Home> {
   List<CategoryModel> categories = [];
   List<PizzaModel> pizzas = [];
   List<BurgerModel> burgers = [];
+  List<ChineseModel> chinese = [];
+  List<MexicanModel> mexican = [];
   String track = "0";
   bool isSearching = false;
   TextEditingController searchController = TextEditingController();
@@ -81,6 +87,8 @@ class _HomeState extends State<Home> {
     categories = getCategories();
     pizzas = getPizza();
     burgers = getBurger();
+    chinese = getChinese();
+    mexican = getMexican();
     super.initState();
   }
 
@@ -306,6 +314,46 @@ class _HomeState extends State<Home> {
                     burgers[index].name!,
                     burgers[index].image!,
                     burgers[index].price!,
+                  );
+                },
+              ),
+            )
+            : track == "2"
+            ? Expanded(
+              child: GridView.builder(
+                padding: EdgeInsets.zero,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.6,
+                  mainAxisSpacing: 10.0,
+                  crossAxisSpacing: 5.0,
+                ),
+                itemCount: chinese.length,
+                itemBuilder: (context, index) {
+                  return FoodTile(
+                    chinese[index].name!,
+                    chinese[index].image!,
+                    chinese[index].price!,
+                  );
+                },
+              ),
+            )
+            : track == "3"
+            ? Expanded(
+              child: GridView.builder(
+                padding: EdgeInsets.zero,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.6,
+                  mainAxisSpacing: 10.0,
+                  crossAxisSpacing: 5.0,
+                ),
+                itemCount: mexican.length,
+                itemBuilder: (context, index) {
+                  return FoodTile(
+                    mexican[index].name!,
+                    mexican[index].image!,
+                    mexican[index].price!,
                   );
                 },
               ),
