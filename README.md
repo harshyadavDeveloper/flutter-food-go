@@ -102,7 +102,9 @@ flutter build apk --release
 - **Admin Panel:** Configure admin credentials for order management
 
 🚀 **You're all set!** The food delivery app should now be running on your Android device/emulator.
-    ![On Board Screenshot](https://i.ibb.co/bM1CvZff/get-started.jpg)
+
+## Installation
+ ![On Board Screenshot](https://i.ibb.co/bM1CvZff/get-started.jpg)
 
 ![Login Screenshot](https://i.ibb.co/6LjgPCN/login.jpg)
 
