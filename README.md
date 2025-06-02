@@ -41,3 +41,6 @@ Add badges from somewhere like: [shields.io](https://shields.io/)
 ![REST API](https://img.shields.io/badge/REST-API-02569B?style=for-the-badge)
 ![MIT License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)
 
+![Get Started Page](https://i.ibb.co/bM1CvZff/get-started.jpg)
+
+
